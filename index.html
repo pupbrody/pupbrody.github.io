@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>근무표 달력</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;margin:0;background:#f6f7f9;color:#222}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:24px;margin:8px 0 4px}
+.sub{color:#666;font-size:14px;margin:0 0 16px}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:16px;margin-bottom:14px}
+label{font-size:13px;color:#666}
+select{font-size:16px;padding:8px 10px;border-radius:10px;border:1px solid #ddd;margin:6px 0 12px}
+.months{display:flex;flex-wrap:wrap;gap:6px}
+.months button{border:1px solid #ddd;background:#fff;border-radius:999px;padding:7px 11px;cursor:pointer}
+.months button.on{background:#222;color:#fff;border-color:#222}
+.months button.has{font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px}
+.dow{text-align:center;font-size:12px;color:#888;padding:4px 0}
+.cell{min-height:74px;border:1px solid #eee;border-radius:10px;padding:6px;text-align:left;background:#fff;cursor:pointer}
+.cell.today{border-color:#222}
+.cell.sel{background:#eef2ff;border-color:#4f46e5}
+.cell .d{font-size:14px;font-weight:700}
+.cell .t{font-size:11px;line-height:1.4;margin-top:4px}
+.tag{display:inline-block;font-size:11px;padding:2px 6px;border-radius:999px;margin-top:2px}
+.day{background:#dbeafe}.night{background:#ede9fe}.leave{background:#dcfce7}
+.detail{font-size:15px;line-height:1.8}
+.detail b{font-size:18px}
+.muted{color:#666;font-size:13px}
+.legend{font-size:13px;color:#555}
+@media(max-width:520px){.cell{min-height:62px}.cell .t{font-size:10px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>근무표 달력</h1>
+<p class="sub">년 &gt; 월 &gt; 날짜를 선택하면 그날의 근무가 표시됩니다.</p>
+
+<div class="card">
+<label for="year">년</label><br>
+<select id="year"><option value="2026" selected>2026년</option></select>
+<div class="months" id="months"></div>
+<p class="legend">● 데이터가 있는 달은 굵게 표시됩니다. 현재는 2026년 11월 데이터가 있습니다.</p>
+</div>
+
+<div class="card">
+<div id="title" style="font-size:18px;font-weight:700"></div>
+<div class="grid" id="grid"></div>
+</div>
+
+<div class="card">
+<div id="detail" class="detail">날짜를 눌러보세요.</div>
+<p class="muted">야간 근무의 퇴근시간은 익일 시간입니다. 예: 11/4 야간 출근 19:37, 퇴근 익일 09:36.<br>
+휴가 종류: 지휴, 연차, 연지, 분지 중 해당되는 것이 표시됩니다.</p>
+</div>
+</div>
+
+<script>
+const SCHEDULE = {
+"2026-11-01":{type:"주간",detail:"휴일주간",dia:9,start:"09:00",end:"18:00",endNextDay:false,leave:null},
+"2026-11-02":{type:"휴가",detail:"연차",dia:null,start:null,end:null,endNextDay:false,leave:"연차"},
+"2026-11-04":{type:"야간",detail:"평일야간",dia:15,start:"19:37",end:"09:36",endNextDay:true,leave:null},
+"2026-11-06":{type:"휴가",detail:"지휴",dia:null,start:null,end:null,endNextDay:false,leave:"지휴"},
+"2026-11-08":{type:"야간",detail:"휴평야간",dia:17,start:"19:00",end:"10:00",endNextDay:true,leave:null},
+"2026-11-10":{type:"야간",detail:"평일야간",dia:1,start:"15:56",end:"06:30",endNextDay:true,leave:null},
+"2026-11-12":{type:"야간",detail:"평일야간",dia:2,start:"15:57",end:"06:30",endNextDay:true,leave:null},
+"2026-11-14":{type:"야간",detail:"토휴야간",dia:7,start:"17:02",end:"08:34",endNextDay:true,leave:null},
+"2026-11-16":{type:"주간",detail:"평일주간",dia:10,start:"09:00",end:"18:00",endNextDay:false,leave:null},
+"2026-11-17":{type:"주간",detail:"평일주간",dia:13,start:"09:00",end:"18:00",endNextDay:false,leave:null},
+"2026-11-18":{type:"주간",detail:"평일주간",dia:16,start:"09:46",end:"18:46",endNextDay:false,leave:null},
+"2026-11-19":{type:"주간",detail:"평일주간",dia:6,start:"08:22",end:"17:22",endNextDay:false,leave:null},
+"2026-11-20":{type:"휴가",detail:"지휴",dia:null,start:null,end:null,endNextDay:false,leave:"지휴"},
+"2026-11-21":{type:"주간",detail:"토요주간",dia:2,start:"07:49",end:"16:49",endNextDay:false,leave:null},
+"2026-11-22":{type:"주간",detail:"휴일주간",dia:5,start:"08:58",end:"17:58",endNextDay:false,leave:null},
+"2026-11-23":{type:"야간",detail:"평일야간",dia:8,start:"16:51",end:"08:21",endNextDay:true,leave:null},
+"2026-11-25":{type:"야간",detail:"평일야간",dia:11,start:"17:21",end:"09:09",endNextDay:true,leave:null},
+"2026-11-27":{type:"야간",detail:"평토야간",dia:15,start:"19:37",end:"10:00",endNextDay:true,leave:null},
+"2026-11-29":{type:"야간",detail:"휴평야간",dia:17,start:"19:00",end:"10:00",endNextDay:true,leave:null}
+};
+let year = 2026, month = 11, selected = "2026-11-01";
+const dows = ["일","월","화","수","목","금","토"];
+function pad(n){return String(n).padStart(2,"0")}
+function key(y,m,d){return y+"-"+pad(m)+"-"+pad(d)}
+function renderMonths(){
+  const el=document.getElementById("months"); el.innerHTML="";
+  for(let m=1;m<=12;m++){
+    const b=document.createElement("button");
+    const has=Object.keys(SCHEDULE).some(k=>k.startsWith(year+"-"+pad(m)));
+    b.textContent=m+"월"; if(m===month)b.classList.add("on"); if(has)b.classList.add("has");
+    b.onclick=()=>{month=m; renderMonths(); renderGrid();};
+    el.appendChild(b);
+  }
+}
+function showDetail(k){
+  selected=k; const e=SCHEDULE[k];
+  const dt=new Date(k+"T00:00:00");
+  const head=k+" ("+dows[dt.getDay()]+")";
+  const el=document.getElementById("detail");
+  if(!e){ el.innerHTML="<b>"+head+"</b><br>등록된 근무가 없습니다."; return; }
+  let html="<b>"+head+"</b><br>";
+  html+="근무: "+e.type+" ("+e.detail+")<br>";
+  if(e.dia) html+="근무번호(DIA): "+e.dia+"<br>";
+  if(e.start) html+="출근: "+e.start+"<br>";
+  if(e.end) html+="퇴근: "+(e.endNextDay?"익일 ":"")+e.end+"<br>";
+  if(e.leave) html+="휴가: "+e.leave+"<br>";
+  el.innerHTML=html;
+  document.querySelectorAll(".cell").forEach(c=>c.classList.toggle("sel", c.dataset.key===k));
+}
+function renderGrid(){
+  document.getElementById("title").textContent=year+"년 "+month+"월";
+  const grid=document.getElementById("grid"); grid.innerHTML="";
+  dows.forEach(d=>{const s=document.createElement("div"); s.className="dow"; s.textContent=d; grid.appendChild(s);});
+  const first=new Date(year,month-1,1).getDay();
+  const days=new Date(year,month,0).getDate();
+  for(let i=0;i<first;i++){const s=document.createElement("div"); grid.appendChild(s);}
+  const todayKey=new Date().getFullYear()+"-"+pad(new Date().getMonth()+1)+"-"+pad(new Date().getDate());
+  for(let d=1;d<=days;d++){
+    const k=key(year,month,d); const e=SCHEDULE[k];
+    const c=document.createElement("button"); c.className="cell"; c.dataset.key=k;
+    if(k===todayKey)c.classList.add("today"); if(k===selected)c.classList.add("sel");
+    let inner='<div class="d">'+d+'</div>';
+    if(e){
+      const cls=e.type==="주간"?"day":e.type==="야간"?"night":"leave";
+      inner+='<span class="tag '+cls+'">'+e.type+'</span><div class="t">';
+      if(e.leave) inner+=e.leave;
+      else inner+="출 "+e.start+"<br>퇴 "+(e.endNextDay?"익일 ":"")+e.end;
+      inner+='</div>';
+    }
+    c.innerHTML=inner; c.onclick=()=>showDetail(k); grid.appendChild(c);
+  }
+}
+renderMonths(); renderGrid(); showDetail(selected);
+</script>
+</body>
+</html>
