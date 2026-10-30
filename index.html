@@ -47,7 +47,7 @@ select{font-size:16px;padding:8px 10px;border-radius:10px;border:1px solid #4040
 <label for="year">년</label><br>
 <select id="year"><option value="2026" selected>2026년</option></select>
 <div class="months" id="months"></div>
-<p class="legend">● 데이터가 있는 달은 굵게 표시됩니다. 현재는 2026년 11월 데이터가 있습니다.<br>어두운 노란색 배경은 쉬는 날입니다. 휴가(지휴·연차·연지·분지)인 날과, 해당 월 데이터가 있는데 근무가 없는 날이 해당됩니다.<br>날짜 색: 평일 밝은 회색, 토요일 밝은 파랑, 일요일 밝은 빨강. 오늘 날짜는 빨간색 테두리입니다.</p>
+<p class="legend">● 데이터가 있는 달은 굵게 표시됩니다. 현재는 2026년 11월 데이터가 있습니다.<br>어두운 노란색 배경은 비번 또는 휴가 날입니다. 휴가(지휴·연차·연지·분지)인 날과, 해당 월 데이터가 있는데 근무가 없는 날이 해당됩니다.<br>날짜 색: 평일 밝은 회색, 토요일 밝은 파랑, 일요일 밝은 빨강. 오늘 날짜는 빨간색 테두리입니다.</p>
 </div>
 
 <div class="card">
@@ -58,8 +58,7 @@ select{font-size:16px;padding:8px 10px;border-radius:10px;border:1px solid #4040
 <div class="card">
 <div id="detail" class="detail">날짜를 눌러보세요.</div>
 <img id="scheduleImg" alt="그날 행로표">
-<p class="muted">야간 근무의 퇴근시간은 익일 시간입니다. 예: 11/4 야간 출근 19:37, 퇴근 익일 09:36.<br>
-휴가 종류: 지휴, 연차, 연지, 분지 중 해당되는 것이 표시됩니다.</p>
+<p class="muted">휴가 종류: 지휴, 연차, 연지, 분지 중 해당되는 것이 표시됩니다.</p>
 </div>
 </div>
 
@@ -114,17 +113,17 @@ function showDetail(k){
     } else { img.style.display="none"; img.removeAttribute("src"); }
   }
   if(!e){
-    el.innerHTML="<b>"+head+"</b><br>"+(hasMonthData?"쉬는 날입니다.":"등록된 근무가 없습니다.");
+    el.innerHTML="<b>"+head+"</b><br>"+(hasMonthData?"비번입니다.":"등록된 근무가 없습니다.");
     document.querySelectorAll(".cell").forEach(c=>c.classList.toggle("sel", c.dataset.key===k));
     return;
   }
   let html="<b>"+head+"</b><br>";
-  if(e.type==="휴가") html+="쉬는 날입니다.<br>";
+  if(e.type==="휴가") html+="휴가입니다.<br>";
   html+="근무: "+e.type+" ("+e.detail+")<br>";
   if(e.dia) html+="근무번호(DIA): "+e.dia+"<br>";
   if(e.dia) html+="행로표: "+e.detail+" "+e.dia+"번<br>";
   if(e.start) html+="출근: "+e.start+"<br>";
-  if(e.end) html+="퇴근: "+(e.endNextDay?"익일 ":"")+e.end+"<br>";
+  if(e.end) html+="퇴근: "+e.end+"<br>";
   if(e.leave) html+="휴가: "+e.leave+"<br>";
   el.innerHTML=html;
   document.querySelectorAll(".cell").forEach(c=>c.classList.toggle("sel", c.dataset.key===k));
@@ -150,10 +149,10 @@ function renderGrid(){
       const cls=e.type==="주간"?"day":e.type==="야간"?"night":"leave";
       inner+='<span class="tag '+cls+'">'+e.type+'</span><div class="t">';
       if(e.leave) inner+=e.leave;
-      else inner+="출 "+e.start+"<br>퇴 "+(e.endNextDay?"익일 ":"")+e.end;
+      else inner+="출 "+e.start+"<br>퇴 "+e.end;
       inner+='</div>';
     } else if(hasMonthData){
-      inner+='<span class="tag" style="visibility:hidden">쉬는 날</span><div class="t">쉬는 날</div>';
+      inner+='<span class="tag" style="visibility:hidden">비번</span><div class="t">비번</div>';
     } else {
       inner+='<span class="tag" style="visibility:hidden">-</span><div class="t" style="visibility:hidden">-</div>';
     }
