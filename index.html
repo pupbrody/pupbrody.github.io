@@ -35,7 +35,7 @@ select{font-size:16px;padding:8px 10px;border-radius:10px;border:1px solid #4040
 .detail b{font-size:18px}
 .muted{color:#9ca3af;font-size:13px}
 .legend{font-size:13px;color:#9ca3af}
-@media(max-width:520px){.grid{grid-auto-rows:98px}.cell{height:98px;min-height:98px;padding:4px 4px 8px}.cell .t{font-size:9px;line-height:12px;height:auto;min-height:36px;letter-spacing:-1px}}
+@media(max-width:520px){.narrow{letter-spacing:-1px}.grid{grid-auto-rows:98px}.cell{height:98px;min-height:98px;padding:4px 4px 8px}.cell .t{font-size:9px;line-height:12px;height:auto;min-height:36px}}
 </style>
 </head>
 <body>
@@ -151,7 +151,7 @@ function renderGrid(){
       const cls=e.type==="주간"?"day":e.type==="야간"?"night":"leave";
       inner+='<span class="tag '+cls+'">'+e.type+'</span><div class="'+(e.leave?"t center":"t")+'">';
       if(e.leave) inner+=e.leave;
-      else inner+=(e.dia?'<div class="dia-line">'+e.dia+"dia</div>":"")+"출 "+e.start+"<br>퇴 "+e.end;
+      else inner+=(e.dia?'<div class="dia-line">'+e.dia+"dia</div>":"")+(k==="2026-11-01"?'<span class="narrow">출 '+e.start+"</span>":"출 "+e.start)+"<br>퇴 "+e.end;
       inner+='</div>';
     } else if(hasMonthData){
       inner+='<span class="tag" style="visibility:hidden">비번</span><div class="t center">비번</div>';
