@@ -30,7 +30,7 @@ select{font-size:16px;padding:8px 10px;border-radius:10px;border:1px solid #4040
 .cell.sun .d{color:#f87171}.cell.sat .d{color:#60a5fa}
 .cell .t{font-size:11px;line-height:14px;height:42px;min-height:42px;align-self:stretch;width:100%;box-sizing:border-box;margin-top:8px;overflow:hidden}.cell .t.center{text-align:center}.dia-line{text-align:center}
 .tag{display:inline-block;font-size:11px;line-height:18px;height:18px;padding:0 6px;border-radius:999px;margin-top:2px;flex:0 0 18px;align-self:center}
-.day{background:#facc15;color:#111827}.night{background:#2563eb;color:#fff}.leave{background:#dc2626;color:#fff}.standby{background:#6b7280;color:#fff}
+.day{background:#facc15;color:#111827}.night{background:#2563eb;color:#fff}.leave{background:#dc2626;color:#fff}
 .detail{font-size:15px;line-height:1.8}
 .detail b{font-size:18px}
 .muted{color:#9ca3af;font-size:13px}
@@ -75,7 +75,7 @@ const SCHEDULE = {
 "2026-11-14":{type:"야간",detail:"토휴야간",dia:10,start:"17:39",end:"08:42",endNextDay:true,leave:null},
 "2026-11-16":{type:"주간",detail:"평일주간",dia:10,start:"09:00",end:"18:00",endNextDay:false,leave:null},
 "2026-11-17":{type:"주간",detail:"평일주간",dia:13,start:"09:00",end:"18:00",endNextDay:false,leave:null},
-"2026-11-18":{type:"대기",detail:"대기",dia:null,start:"09:00",end:"18:00",endNextDay:false,leave:null},
+"2026-11-18":{type:"주간",detail:"평일주간",dia:"대기",start:"09:00",end:"18:00",endNextDay:false,leave:null},
 "2026-11-19":{type:"주간",detail:"평일주간",dia:6,start:"08:22",end:"17:22",endNextDay:false,leave:null},
 "2026-11-20":{type:"휴가",detail:"지휴",dia:null,start:null,end:null,endNextDay:false,leave:"지휴"},
 "2026-11-21":{type:"주간",detail:"토요주간",dia:2,start:"07:49",end:"16:49",endNextDay:false,leave:null},
@@ -142,7 +142,7 @@ function showDetail(k){
   if(e.type==="휴가") html+="휴가입니다.<br>";
   html+="근무: "+e.type+" ("+e.detail+")<br>";
   if(e.dia) html+="근무번호(DIA): "+e.dia+"<br>";
-  if(e.dia) html+="행로표: "+e.detail+" "+e.dia+"번<br>";
+  if(e.dia && e.dia!=="대기") html+="행로표: "+e.detail+" "+e.dia+"번<br>";
   if(e.start) html+="출근: "+e.start+"<br>";
   if(e.end) html+="퇴근: "+e.end+"<br>";
   if(e.leave) html+="휴가: "+e.leave+"<br>";
@@ -168,11 +168,11 @@ function renderGrid(){
     if(k===todayKey)c.classList.add("today"); if(k===selected)c.classList.add("sel");
     let inner='<div class="d">'+d+'</div>';
     if(e){
-      const cls=e.type==="주간"?"day":e.type==="야간"?"night":e.type==="대기"?"standby":"leave";
+      const cls=e.type==="주간"?"day":e.type==="야간"?"night":"leave";
       inner+='<span class="tag '+cls+'">'+e.type+'</span><div class="'+((e.leave||e.isDefault)?"t center":"t")+'">';
       if(e.leave) inner+=e.leave;
       else if(e.isDefault) inner+="기본 패턴";
-      else inner+=(e.dia?'<div class="dia-line">'+e.dia+"dia</div>":"")+"출 "+e.start+"<br>퇴 "+e.end;
+      else inner+=(e.dia?(e.dia==="대기"?'<div class="dia-line">대기</div>':'<div class="dia-line">'+e.dia+"dia</div>"):"")+"출 "+e.start+"<br>퇴 "+e.end;
       inner+='</div>';
     } else if(hasMonthData){
       inner+='<span class="tag" style="visibility:hidden">비번</span><div class="t center">비번</div>';
