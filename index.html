@@ -50,10 +50,11 @@ select{font-size:16px;padding:8px 10px;border-radius:10px;border:1px solid #4040
 <p class="legend">● 굵은 달은 검증된 데이터가 있는 달입니다. 현재는 2026년 11월 데이터가 있습니다. 2026년 12월 이후는 기본 패턴(주간 1주·야간 2주, 21일 주기)이며, 일정표가 올라오면 해당 달은 검증된 데이터로 바뀝니다.<br>어두운 노란색 배경은 비번 또는 휴가 날입니다. 휴가(지휴·연차·연지·분지)인 날과, 해당 월 데이터가 있는데 근무가 없는 날이 해당됩니다.<br>날짜 색: 평일 밝은 회색, 토요일 밝은 파랑, 일요일 밝은 빨강. 오늘 날짜는 빨간색 테두리입니다.</p>
 </div>
 
-<div class="card">
+<div class="card" id="calendarCard">
 <div id="title" style="font-size:18px;font-weight:700"></div>
 <div class="dow-grid" id="dowRow"></div>
 <div class="grid" id="grid"></div>
+<p class="muted" style="margin:8px 0 0">좌우로 밀면 이전/다음 달로 넘어갑니다.</p>
 </div>
 
 <div class="card">
@@ -186,6 +187,33 @@ document.getElementById("year").addEventListener("change", function(ev){
   year=parseInt(ev.target.value,10); selected=key(year,month,1);
   renderMonths(); renderGrid(); showDetail(selected);
 });
+function changeMonth(delta){
+  let y=year, m=month+delta;
+  if(m<1){m=12; y--;}
+  if(m>12){m=1; y++;}
+  if(y<2026||y>2027) return;
+  year=y; month=m;
+  document.getElementById("year").value=String(year);
+  const d=Math.min(parseInt(selected.slice(8,10),10), new Date(year,month,0).getDate());
+  selected=key(year,month,d);
+  renderMonths(); renderGrid(); showDetail(selected);
+}
+(function(){
+  const card=document.getElementById("calendarCard");
+  let sx=0, sy=0;
+  card.addEventListener("touchstart", function(ev){ const t0=ev.changedTouches[0]; sx=t0.clientX; sy=t0.clientY; }, {passive:true});
+  card.addEventListener("touchend", function(ev){
+    const t0=ev.changedTouches[0]; const dx=t0.clientX-sx, dy=t0.clientY-sy;
+    if(Math.abs(dx)>50 && Math.abs(dx)>Math.abs(dy)) changeMonth(dx<0?1:-1);
+  }, {passive:true});
+  let mx=0, my=0, down=false;
+  card.addEventListener("mousedown", function(ev){ down=true; mx=ev.clientX; my=ev.clientY; });
+  card.addEventListener("mouseup", function(ev){
+    if(!down) return; down=false;
+    const dx=ev.clientX-mx, dy=ev.clientY-my;
+    if(Math.abs(dx)>50 && Math.abs(dx)>Math.abs(dy)) changeMonth(dx<0?1:-1);
+  });
+})();
 renderMonths(); renderGrid(); showDetail(selected);
 </script>
 </body>
